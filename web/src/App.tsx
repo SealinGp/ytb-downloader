@@ -140,7 +140,7 @@ function App() {
               {resp.code == Code.Ok && resp.data && (
                 <>
                   <Grid item xs={12} width={'100%'}>
-                    <h3>视频总览:</h3>
+                    <h3>Basic Info:</h3>
                   </Grid>
 
                   <Grid item xs={12} width={'100%'}>
@@ -180,7 +180,7 @@ function App() {
                   </Grid>
 
                   <Grid item xs={12} width={'100%'}>
-                    <h3>源格式列表:</h3>
+                    <h3>Video Formats:</h3>
                   </Grid>
 
                   <Grid item>
@@ -190,10 +190,10 @@ function App() {
                           <TableRow>
                             <TableCell>itag</TableCell>
                             <TableCell align="left">FPS</TableCell>
-                            <TableCell align="left">质量</TableCell>
-                            <TableCell align="left">大小(MB)</TableCell>
-                            <TableCell align="left">格式</TableCell>
-                            <TableCell align="left">操作</TableCell>
+                            <TableCell align="left">quality</TableCell>
+                            <TableCell align="left">size(MB)</TableCell>
+                            <TableCell align="left">mime type</TableCell>
+                            <TableCell align="left">actions</TableCell>
                           </TableRow>
                         </TableHead>
 
@@ -215,14 +215,14 @@ function App() {
                                     <Typography >
                                       {format.audioQuality ? format.audioQuality.substring(format.audioQuality.lastIndexOf('_') + 1) : '-'}
                                     </Typography>
-                                    <Chip sx={{ marginLeft: '5px' }} icon={<AudioFileIcon />} label={"音频"} variant="outlined" />
+                                    <Chip sx={{ marginLeft: '5px' }} icon={<AudioFileIcon />} label={"Audio"} variant="outlined" />
                                   </Box>
                                 )}
 
                                 {!format.mimeType.includes('audio') && (
                                   <Box component='div' sx={{ display: 'flex', alignItems: 'center' }}>
                                     <Typography >{format.qualityLabel}</Typography>
-                                    <Chip sx={{ marginLeft: '5px' }} icon={<VideoFileIcon />} label={"视频"} variant="outlined" />
+                                    <Chip sx={{ marginLeft: '5px' }} icon={<VideoFileIcon />} label={"Video"} variant="outlined" />
                                   </Box>
                                 )}
                               </TableCell>
