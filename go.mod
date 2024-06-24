@@ -4,6 +4,7 @@ go 1.22.0
 
 require (
 	github.com/cloudwego/hertz v0.9.1
+	github.com/hertz-contrib/requestid v1.1.0
 	github.com/kkdai/youtube/v2 v2.10.1
 )
 
@@ -22,6 +23,7 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/google/pprof v0.0.0-20240227163752-401108e1b7e7 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/henrylee2cn/ameda v1.4.10 // indirect
 	github.com/henrylee2cn/goutil v0.0.0-20210127050712-89660552f6f8 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
@@ -38,5 +40,3 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 )
-
-

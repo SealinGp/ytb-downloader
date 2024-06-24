@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strconv"
@@ -12,13 +13,19 @@ import (
 )
 
 func Info(c context.Context, ctx *app.RequestContext) {
-	ytbUrl := ctx.Param("youtube_url")
-	if ytbUrl == "" {
-		RespFail[*youtube.Video](ctx, RespWithMsg[*youtube.Video]("param youtube_url required"))
+	ytbKw := ctx.Query("ytb_kw")
+	if ytbKw == "" {
+		RespFail[*youtube.Video](ctx, RespWithMsg[*youtube.Video]("query ytb_kw required"))
 		return
 	}
 
-	video, err := ytbDownloader.GetVideoContext(c, ytbUrl)
+	decodeUrlYtbUrl, err := base64.StdEncoding.DecodeString(ytbKw)
+	if err != nil {
+		RespFail[*youtube.Video](ctx, RespWithMsg[*youtube.Video](err.Error()))
+		return
+	}
+
+	video, err := ytbDownloader.GetVideoContext(c, string(decodeUrlYtbUrl))
 	if err != nil {
 		RespFail[*youtube.Video](ctx, RespWithMsg[*youtube.Video](err.Error()))
 		return
@@ -53,15 +60,15 @@ const (
 )
 
 type DownloadRequest struct {
-	Keyword  string   `json:"keyword,omitempty"` //video url or id
-	Language string   `json:"language,omitempty"`
-	MimeType MimeType `json:"mime_type,omitempty"`
-	Quality  string   `json:"quality,omitempty"` //itag number or quality string
+	Keyword  string   `query:"keyword,omitempty"` //video url or id
+	Language string   `query:"language,omitempty"`
+	MimeType MimeType `query:"mime_type,omitempty"`
+	Quality  string   `query:"quality,omitempty"` //itag number or quality string
 }
 
 func Download(c context.Context, ctx *app.RequestContext) {
 	req := &DownloadRequest{}
-	if err := ctx.BindJSON(req); err != nil {
+	if err := ctx.BindQuery(req); err != nil {
 		RespFail[*youtube.Video](ctx, RespWithMsg[*youtube.Video](err.Error()))
 		return
 	}
@@ -87,7 +94,6 @@ func Download(c context.Context, ctx *app.RequestContext) {
 
 	ctx.Header("Content-Type", "application/octet-stream")
 	ctx.Header("content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
-	ctx.Header("Content-Transfer-Encoding", "binary")
 	ctx.SetBodyStream(stream, int(size))
 }
 
