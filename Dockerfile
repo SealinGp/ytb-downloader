@@ -12,7 +12,8 @@ COPY . .
 
 RUN go build -o ytb-downloader .
 
+FROM debian:bullseye-slim
+WORKDIR /app
+COPY --from=builder /app/ytb-downloader .
 EXPOSE 7777
-
-# 设置容器启动时运行的命令
-ENTRYPOINT ["./ytb-downloader"] 
+CMD ["./ytb-downloader"]
