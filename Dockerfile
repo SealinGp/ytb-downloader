@@ -1,19 +1,15 @@
 FROM golang:1.22.0 AS builder
-
-ENV GOPROXY=https://goproxy.cn,direct
-
 WORKDIR /app
-
+ENV GOPROXY=https://goproxy.cn,direct
 COPY go.mod go.sum ./
-
-RUN go mod download
-
 COPY . .
+RUN go mod download
+RUN GOOS=linux GOARCH=amd64 go build -o ytb-downloader .
 
-RUN go build -o ytb-downloader .
-
-FROM debian:bullseye-slim
+FROM debian:stable-slim
 WORKDIR /app
 COPY --from=builder /app/ytb-downloader .
+COPY --from=builder /app/web/dist ./web/dist
 EXPOSE 7777
 CMD ["./ytb-downloader"]
+
