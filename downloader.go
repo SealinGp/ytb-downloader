@@ -14,7 +14,7 @@ func initDownloader() {
 	httpCli := &http.Client{}
 
 	proxyAddr, err := url.Parse(os.Getenv("HTTPS_PROXY"))
-	if err == nil {
+	if err == nil && proxyAddr != nil && proxyAddr.Host != "" {
 		httpCli = &http.Client{
 			Transport: &http.Transport{
 				Proxy: http.ProxyURL(proxyAddr),
