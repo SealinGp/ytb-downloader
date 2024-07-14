@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import {
   Code,
+  Format,
   Info,
   OpenDownloadWindow,
   QueryKeyword,
@@ -8,15 +9,20 @@ import {
   Video,
 } from "../api/api";
 import Box from "@mui/material/Box";
+import YouTubeIcon from "@mui/icons-material/YouTube";
 import {
-  Alert,
-  AlertTitle,
+  Button,
   Card,
+  CardActions,
+  CardContent,
   CardHeader,
   CardMedia,
   Chip,
+  FormControl,
   Grid,
   IconButton,
+  Input,
+  InputLabel,
   Paper,
   Skeleton,
   Stack,
@@ -34,7 +40,6 @@ import { useImmer } from "use-immer";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { Link, useSearchParams } from "react-router-dom";
 import moment from "moment";
-import LinkIcon from "@mui/icons-material/Link";
 import DownloadIcon from "@mui/icons-material/Download";
 import AudioFileIcon from "@mui/icons-material/AudioFile";
 import VideoFileIcon from "@mui/icons-material/VideoFile";
@@ -42,6 +47,8 @@ import classNames from "classnames";
 import { randomToN } from "../helper/helper";
 import { encode, decode } from "rison";
 import Err from "./components/Err";
+import { BootstrapTooltip } from "./components/Tooltip";
+import YouTube from "react-youtube";
 
 interface QueryParams {
   kw: string;
@@ -109,13 +116,25 @@ function VideoDetail() {
   };
 
   const subHeader = (video: Video) => {
+    const dur = moment
+      .duration(video.Duration / 1000 / 1000, "milliseconds")
+      .humanize();
     return (
-      <Typography variant="body2" color="text.secondary">
-        by {video.Author}, {video.Views} views,{" "}
-        {moment
-          .duration(video.Duration / 1000 / 1000, "milliseconds")
-          .humanize()}
-      </Typography>
+      <>
+        <Typography variant="body2" color="text.secondary">
+          by {video.Author}, {video.Views} views, {dur}
+        </Typography>
+
+        <Typography
+          sx={{
+            overflowWrap: "anywhere",
+          }}
+          variant="body2"
+          color="text.secondary"
+        >
+          {video.Description}
+        </Typography>
+      </>
     );
   };
 
@@ -130,26 +149,186 @@ function VideoDetail() {
     });
   };
 
+  const quality = (format: Format) => {
+    return (
+      <>
+        {format.mimeType.includes("audio") && (
+          <Box
+            component="div"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Typography>
+              {format.audioQuality
+                ? format.audioQuality.substring(
+                  format.audioQuality.lastIndexOf("_") + 1,
+                )
+                : "-"}
+            </Typography>
+            <BootstrapTooltip title={format.mimeType}>
+              <Chip
+                sx={{ marginLeft: "5px" }}
+                icon={<AudioFileIcon className="dark:text-red-200" />}
+                label={"Audio"}
+                variant="outlined"
+              />
+            </BootstrapTooltip>
+          </Box>
+        )}
+
+        {!format.mimeType.includes("audio") && (
+          <Box
+            component="div"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Typography>{format.qualityLabel}</Typography>
+            <BootstrapTooltip title={format.mimeType}>
+              <Chip
+                sx={{ marginLeft: "5px" }}
+                icon={<VideoFileIcon className="dark:text-red-200" />}
+                label={"Video"}
+                variant="outlined"
+              />
+            </BootstrapTooltip>
+          </Box>
+        )}
+      </>
+    );
+  };
+
+  const header = (video: Video) => {
+    return (
+      <CardHeader
+        sx={{ width: "100%" }}
+        title={video.Title}
+        subheader={subHeader(video)}
+        action={action(video)}
+      />
+    );
+  };
+
+  const content = (video: Video) => {
+    const dur = moment
+      .duration(video.Duration / 1000 / 1000, "milliseconds")
+      .humanize();
+    return (
+      <>
+        <CardContent >
+          <Typography variant="h5" component="div">
+            {video.Title}
+          </Typography>
+
+          <Typography className="dark:text-white" sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+            by {video.Author}, {video.Views} views, {dur}
+          </Typography>
+
+          <Typography className="dark:text-white" sx={{ mb: 1.5, overflowWrap: "anywhere", }} color="text.secondary">
+            {video.Description}
+          </Typography>
+        </CardContent>
+        <CardActions >
+          <Link
+            target="_blank"
+            to={"https://www.youtube.com/watch?v=" + video.ID}
+          >
+            <Button size="small" className="dark:text-red-300">Learn More</Button>
+          </Link>
+
+        </CardActions>
+      </>
+    );
+  };
+
+  const action = (video: Video) => {
+    return (
+      <BootstrapTooltip title="open youtube link">
+        <IconButton aria-label="settings">
+          <Link
+            target="_blank"
+            to={"https://www.youtube.com/watch?v=" + video.ID}
+          >
+            <YouTubeIcon className={classNames("text-red-500")} />
+          </Link>
+        </IconButton>
+      </BootstrapTooltip>
+    );
+  };
+
+  const cardMedia = (video: Video) => {
+    // const thumbnail = video.Thumbnails[video.Thumbnails.length - 1];
+    const opts = {
+      // height: thumbnail.Height,
+      // width: thumbnail.Width,
+      playerVars: {
+        // https://developers.google.com/youtube/player_parameters
+        autoplay: 0,
+      },
+    };
+
+    return (
+      <YouTube
+        videoId={video.ID}
+        id={video.ID}
+        title={video.Title}
+        opts={opts}
+      />
+    );
+  };
+
+  const CssTextField = styled(TextField)({
+    '& label.Mui-focused': {
+      color: '#A0AAB4',
+    },
+    '& .MuiInput-underline:after': {
+      borderBottomColor: '#B2BAC2',
+    },
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: '#E0E3E7',
+      },
+      '&:hover fieldset': {
+        borderColor: '#B2BAC2',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#6F7E8C',
+      },
+    },
+  });
+
+
   return (
-    <Box sx={{ height: "100%", padding: "2rem" }}>
-      <Typography variant="h4" component="div" textAlign="center">
+    <div className="p-8 dark:bg-[#0E1214] dark:text-white"  >
+      <Typography variant="h4" component="div" textAlign="center" >
         Youtube Video Downloader
       </Typography>
 
       <Stack spacing={2} sx={{ marginTop: "50px" }}>
-        <Item sx={{ display: "flex", padding: "0" }}>
-          <TextField
+        <Item sx={{ display: "flex", padding: "0" }} className="rounded-l p-2">
+          {/* <CssTextField
+            variant="standard"
+            label="Input Youtube Url like 'https://www.youtube.com/watch?v=xxx' or just video id 'xxx'"
+            className="w-full dark:bg-gray-500 rounded-l-lg"
             onKeyDown={(e) => onSearch(e)}
-            fullWidth
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            label="Input Youtube Url like 'https://www.youtube.com/watch?v=xxx' or just video id 'xxx'"
-            variant="outlined"
-          />
+          /> */}
+          <FormControl variant="standard" className="w-full dark:bg-gray-500 rounded-l-lg p-2" >
+            <InputLabel className="p-2" htmlFor="kw">Input Youtube Url like 'https://www.youtube.com/watch?v=xxx' or just video id 'xxx'</InputLabel>
+            <Input
+              onKeyDown={(e) => onSearch(e)}
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)} id="kw" defaultValue="" />
+          </FormControl>
+
           <LoadingButton
+            className="dark:bg-gray-500 dark:text-red-200 rounded-none rounded-r-lg"
             onClick={(e) => startSearch()}
             loading={searching}
-            sx={{ marginLeft: "5px" }}
           >
             Search
           </LoadingButton>
@@ -189,51 +368,10 @@ function VideoDetail() {
                   </Grid>
 
                   <Grid item xs={12} width={"100%"}>
-                    <Card
-                      className={classNames(
-                        "flex rounded-2.5xl transition-all duration-300 ease-cb0051 shadow-apple hover:shadow-apple-after hover:scale-101",
-                      )}
-                    >
-                      {resp.data.Thumbnails.length > 0 && (
-                        <CardMedia
-                          sx={{ maxWidth: 151 }}
-                          component="img"
-                          image={
-                            resp.data.Thumbnails[
-                              resp.data.Thumbnails.length - 1
-                            ].URL
-                          }
-                        />
-                      )}
-
-                      <CardHeader
-                        sx={{ width: "100%" }}
-                        title={resp.data.Title}
-                        subheader={subHeader(resp.data)}
-                        action={
-                          <IconButton aria-label="settings">
-                            <Link
-                              target="_blank"
-                              to={
-                                "https://www.youtube.com/watch?v=" +
-                                resp.data.ID
-                              }
-                            >
-                              <LinkIcon />
-                            </Link>
-                          </IconButton>
-                        }
-                      />
-
-                      {/* <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        {resp.data.Description}
-                      </Typography>
-
-                      <Typography variant="body2" color="text.secondary">
-                        duration: {resp.data.Duration}
-                      </Typography>
-                    </CardContent> */}
+                    <Card className={classNames("rounded-2.5xl dark:bg-gray-500 dark:text-white p-2")}>
+                      {/* {header(resp.data)} */}
+                      {cardMedia(resp.data)}
+                      {content(resp.data)}
                     </Card>
                   </Grid>
 
@@ -242,7 +380,7 @@ function VideoDetail() {
                   </Grid>
 
                   <Grid item>
-                    <TableContainer component={Paper}>
+                    <TableContainer component={Paper} className="dark:bg-gray-500 rounded-2.5xl">
                       <Table sx={{ minWidth: 650 }}>
                         <TableHead>
                           <TableRow>
@@ -250,7 +388,6 @@ function VideoDetail() {
                             <TableCell align="left">FPS</TableCell>
                             <TableCell align="left">quality</TableCell>
                             <TableCell align="left">size(MB)</TableCell>
-                            <TableCell align="left">mime type</TableCell>
                             <TableCell align="left">actions</TableCell>
                           </TableRow>
                         </TableHead>
@@ -272,51 +409,7 @@ function VideoDetail() {
                                 {format.fps ? format.fps : "-"}
                               </TableCell>
                               <TableCell align="left">
-                                {format.mimeType.includes("audio") && (
-                                  <Box
-                                    component="div"
-                                    sx={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                    }}
-                                  >
-                                    <Typography>
-                                      {format.audioQuality
-                                        ? format.audioQuality.substring(
-                                            format.audioQuality.lastIndexOf(
-                                              "_",
-                                            ) + 1,
-                                          )
-                                        : "-"}
-                                    </Typography>
-                                    <Chip
-                                      sx={{ marginLeft: "5px" }}
-                                      icon={<AudioFileIcon />}
-                                      label={"Audio"}
-                                      variant="outlined"
-                                    />
-                                  </Box>
-                                )}
-
-                                {!format.mimeType.includes("audio") && (
-                                  <Box
-                                    component="div"
-                                    sx={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                    }}
-                                  >
-                                    <Typography>
-                                      {format.qualityLabel}
-                                    </Typography>
-                                    <Chip
-                                      sx={{ marginLeft: "5px" }}
-                                      icon={<VideoFileIcon />}
-                                      label={"Video"}
-                                      variant="outlined"
-                                    />
-                                  </Box>
-                                )}
+                                {quality(format)}
                               </TableCell>
 
                               <TableCell align="left">
@@ -325,18 +418,11 @@ function VideoDetail() {
                                 )}
                               </TableCell>
                               <TableCell align="left">
-                                {format.mimeType}
-                              </TableCell>
-                              <TableCell align="left">
-                                <LoadingButton
-                                  size="large"
-                                  loading={
-                                    format.loading ? format.loading : false
-                                  }
-                                  onClick={(e) => startDownload(i)}
-                                >
-                                  <DownloadIcon />
-                                </LoadingButton>
+                                <BootstrapTooltip title="download">
+                                  <Button size="small" className="dark:text-red-300">
+                                    <DownloadIcon onClick={(e) => startDownload(i)} />
+                                  </Button>
+                                </BootstrapTooltip>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -350,7 +436,7 @@ function VideoDetail() {
           )}
         </Grid>
       </Stack>
-    </Box>
+    </div>
   );
 }
 
