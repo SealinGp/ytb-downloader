@@ -1,0 +1,10 @@
+services:
+  ytb-downloader:
+    image: sealingp/ytb-downloader:latest
+    container_name: ytb-downloader
+    environment:
+      - HTTPS_PROXY=http://host:port # Optional
+      - HOST=0.0.0.0                 # HTTP host (optional)
+      - PORT=7777                    # HTTP port (optional)
+    ports:
+      - "7777:7777"
