@@ -11,7 +11,13 @@ import (
 )
 
 func initDownloader() {
-	httpCli := &http.Client{}
+	httpCli := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
 
 	proxyAddr, err := url.Parse(os.Getenv("HTTPS_PROXY"))
 	if err == nil && proxyAddr != nil && proxyAddr.Host != "" {
